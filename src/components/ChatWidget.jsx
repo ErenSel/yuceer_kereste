@@ -69,11 +69,37 @@ const ChatWidget = () => {
                 })
             })
 
-            const data = await response.json()
+            if (!response.ok) {
+                try {
+                    await response.json()
+                } catch {
+                    // Ignore parse errors and use fallback UI message.
+                }
+                setIsLoading(false)
+                setMessages(prev => [...prev, {
+                    id: Date.now() + 1,
+                    text: "Üzgünüm, şu an bir bağlantı sorunu yaşıyorum. Lütfen daha sonra tekrar deneyin veya telefonla bize ulaşın.",
+                    sender: 'ai error'
+                }])
+                return
+            }
+
+            let data
+            try {
+                data = await response.json()
+            } catch {
+                setIsLoading(false)
+                setMessages(prev => [...prev, {
+                    id: Date.now() + 1,
+                    text: "Üzgünüm, şu an bir bağlantı sorunu yaşıyorum. Lütfen daha sonra tekrar deneyin veya telefonla bize ulaşın.",
+                    sender: 'ai error'
+                }])
+                return
+            }
 
             setIsLoading(false)
 
-            if (data.error) {
+            if (data.error || !data.text) {
                 setMessages(prev => [...prev, {
                     id: Date.now() + 1,
                     text: "Üzgünüm, şu an bir bağlantı sorunu yaşıyorum. Lütfen daha sonra tekrar deneyin veya telefonla bize ulaşın.",
@@ -104,7 +130,7 @@ const ChatWidget = () => {
             setIsLoading(false)
             setMessages(prev => [...prev, {
                 id: Date.now() + 1,
-                text: "Kritik bir hata oluştu. Lütfen sayfayı yenileyin.",
+                text: "Üzgünüm, şu an bir bağlantı sorunu yaşıyorum. Lütfen daha sonra tekrar deneyin veya telefonla bize ulaşın.",
                 sender: 'ai error'
             }])
         }
